@@ -10192,6 +10192,11 @@
     githubId = 1918771;
     name = "Joe Doyle";
   };
+  jpds = {
+    github = "jpds";
+    githubId = 29158971;
+    name = "Jonathan Davies";
+  };
   jpentland = {
     email = "joe.pentland@gmail.com";
     github = "jpentland";
