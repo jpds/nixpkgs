@@ -15,7 +15,7 @@ let
   ctlpath = lib.makeBinPath [ bash gnused gnugrep coreutils util-linux procps ];
 in stdenv.mkDerivation rec {
   pname = "ejabberd";
-  version = "23.01";
+  version = "23.10";
 
   nativeBuildInputs = [ makeWrapper autoreconfHook ];
 
@@ -27,7 +27,7 @@ in stdenv.mkDerivation rec {
 
   src = fetchurl {
     url = "https://www.process-one.net/downloads/downloads-action.php?file=/${version}/ejabberd-${version}.tar.gz";
-    sha256 = "sha256-K4P+A2u/Hbina4b3GP8T3wmPoQxiv88GuB4KZOb2+cA=";
+    sha256 = "sha256-DW5/DYLZHNqJ4lddmag1B0E9ov/eObIVGASUeioPolg=";
   };
 
   passthru.tests = {
@@ -70,7 +70,7 @@ in stdenv.mkDerivation rec {
 
     outputHashAlgo = "sha256";
     outputHashMode = "recursive";
-    outputHash = "sha256-Lj4YSPOiiJQ6uN4cAR+1s/eVSfoIsuvWR7gGkVYrOfc=";
+    outputHash = "sha256-v/0lK+7Pt0F33ZU2mQIoUH9JHHeL5WdtbxiRIjqq0QM=";
   };
 
   configureFlags = [
