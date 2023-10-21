@@ -10,16 +10,16 @@
 
 buildGoModule rec {
   pname = "thanos";
-  version = "0.32.4";
+  version = "0.32.5";
 
   src = fetchFromGitHub {
     owner = "thanos-io";
     repo = "thanos";
     rev = "refs/tags/v${version}";
-    hash = "sha256-EahgFeBYcjj4app+/XkcC8T99TvnrasjrtRphLthl8c=";
+    hash = "sha256-A4bDCyvctHmDBYzvWpeEO4u6KhoICN7BbRQK4aZCbIA=";
   };
 
-  vendorHash = "sha256-KM1TmTyi9gIHizL62MbzsmtJogI+oLuJ8K2lRb0MlpA=";
+  vendorHash = "sha256-ZjkMvbWq96Rte9WoxAWzeouVA/6mBqanvY9yHr9F5MM=";
 
   doCheck = true;
 
