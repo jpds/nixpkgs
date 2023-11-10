@@ -7,6 +7,17 @@ let cfg = config.services.prometheus.exporters.systemd;
 in {
   port = 9558;
 
+  extraOpts = {
+    package = mkOption {
+      type = types.package;
+      default = pkgs.prometheus-systemd-exporter;
+      defaultText = literalExpression "pkgs.prometheus-systemd-exporter";
+      example = literalExpression "pkgs.prometheus-systemd-exporter";
+      description = lib.mdDoc ''
+        The package to use for prometheus-systemd-exporter
+      '';
+    };
+  };
   serviceOpts = {
     serviceConfig = {
       ExecStart = ''
