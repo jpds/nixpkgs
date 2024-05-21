@@ -6,4 +6,5 @@
 {
   standalone = import ./standalone.nix { inherit system pkgs; };
   ssd = import ./ssd.nix { inherit system pkgs; };
+  microservices = import ./microservices.nix { inherit system pkgs; };
 }
