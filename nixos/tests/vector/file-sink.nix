@@ -39,6 +39,7 @@ import ../make-test-python.nix ({ lib, pkgs, ... }:
   testScript = ''
     machine.wait_for_unit("vector.service")
     machine.wait_for_open_port(9598)
+    machine.succeed("journalctl -o cat -u vector.service | grep 'API is disabled'")
     machine.wait_until_succeeds("curl -sSf http://localhost:9598/metrics | grep vector_build_info")
     machine.wait_until_succeeds("curl -sSf http://localhost:9598/metrics | grep vector_component_received_bytes_total | grep journald")
     machine.wait_until_succeeds("curl -sSf http://localhost:9598/metrics | grep vector_utilization | grep prometheus_exporter")
