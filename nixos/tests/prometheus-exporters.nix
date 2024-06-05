@@ -501,6 +501,7 @@ let
         };
 
         systemd.services.apache-kafka.unitConfig.StateDirectory = "apache-kafka";
+        systemd.services.prometheus-kafka-exporter.serviceConfig.Environment = "KAFKA_BROKERS=localhost:9092";
       };
       exporterTest = ''
         wait_for_unit("apache-kafka")
