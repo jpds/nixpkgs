@@ -17961,7 +17961,6 @@ with pkgs;
 
   apacheKafkaVersions = callPackages ../servers/apache-kafka { };
   inherit (apacheKafkaVersions)
-    apacheKafka_3_5
     apacheKafka_3_6
     apacheKafka_3_7;
 
