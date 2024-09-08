@@ -29,7 +29,7 @@ let
     else llvmPackages.stdenv).mkDerivation;
 in mkDerivation rec {
   pname = "clickhouse";
-  version = "24.3.7.30";
+  version = "24.8.4.13";
 
   src = fetchFromGitHub rec {
     owner = "ClickHouse";
@@ -37,7 +37,7 @@ in mkDerivation rec {
     rev = "v${version}-lts";
     fetchSubmodules = true;
     name = "clickhouse-${rev}.tar.gz";
-    hash = "sha256-xIqn1cRbuD3NpUC2c7ZzvC8EAmg+XOXCkp+g/HTdIc0=";
+    hash = "sha256-uU9gVdYuJs7I73Q+lSotPXQScJ9UHluLfaBtXTtCToU=";
     postFetch = ''
       # delete files that make the source too big
       rm -rf $out/contrib/llvm-project/llvm/test
@@ -60,21 +60,15 @@ in mkDerivation rec {
       rm -r "$out"
       mv temp "$out"
     '';
-  };
+   };
 
-  patches = [
-    # They updated the Cargo.toml without updating the Cargo.lock :/
-    (fetchpatch {
-      url = "https://github.com/ClickHouse/ClickHouse/commit/bccd33932b5fe17ced2dc2f27813da0b1c034afa.patch";
-      revert = true;
-      hash = "sha256-4idwr+G8WGuT/VILKtDIJIvbCvi6pZokJFze4dP6ExE=";
-    })
-    (fetchpatch {
-      url = "https://github.com/ClickHouse/ClickHouse/commit/b6bd5ecb199ef8a10e3008a4ea3d96087db8a8c1.patch";
-      revert = true;
-      hash = "sha256-nbb/GV2qWEZ+BEfT6/9//yZf4VWdhOdJCI3PLeh6o0M=";
-    })
-  ];
+  cargoRoot = "rust/workspace";
+  cargoDeps = if rustSupport then rustPlatform.importCargoLock {
+    lockFile = ./Cargo.lock;
+    outputHashes = {
+      "tuikit-0.5.0" = "sha256-i5qEiQhN6FqC3teLr73ni2uu1ofZ5pMGz07VcEZPeO0=";
+    };
+  } else null;
 
   strictDeps = true;
   nativeBuildInputs = [
@@ -98,51 +92,8 @@ in mkDerivation rec {
 
   buildInputs = lib.optionals stdenv.isDarwin [ libiconv ];
 
-  # their vendored version is too old and missing this patch: https://github.com/corrosion-rs/corrosion/pull/205
-  corrosionSrc = if rustSupport then fetchFromGitHub {
-    owner = "corrosion-rs";
-    repo = "corrosion";
-    rev = "v0.3.5";
-    hash = "sha256-r/jrck4RiQynH1+Hx4GyIHpw/Kkr8dHe1+vTHg+fdRs=";
-  } else null;
-  corrosionDeps = if rustSupport then rustPlatform.fetchCargoTarball {
-    src = corrosionSrc;
-    name = "corrosion-deps";
-    preBuild = "cd generator";
-    hash = "sha256-dhUgpwSjE9NZ2mCkhGiydI51LIOClA5wwk1O3mnnbM8=";
-  } else null;
-  rustDeps = if rustSupport then rustPlatform.fetchCargoTarball {
-    inherit src;
-    name = "rust-deps";
-    preBuild = "cd rust";
-    hash = "sha256-rbEfCRB2QAZ2WBgSLYYUqeYtI4Y5d9oQ2G8/mPirIp4=";
-  } else null;
-
-  dontCargoSetupPostUnpack = true;
-  postUnpack = lib.optionalString rustSupport ''
-    pushd source
-
-    rm -rf contrib/corrosion
-    cp -r --no-preserve=mode $corrosionSrc contrib/corrosion
-
-    pushd contrib/corrosion/generator
-    cargoDeps="$corrosionDeps" cargoSetupPostUnpackHook
-    corrosionDepsCopy="$cargoDepsCopy"
-    popd
-
-    pushd rust
-    cargoDeps="$rustDeps" cargoSetupPostUnpackHook
-    rustDepsCopy="$cargoDepsCopy"
-    cat .cargo/config >> .cargo/config.toml.in
-    cat .cargo/config >> skim/.cargo/config.toml.in
-    rm .cargo/config
-    popd
-
-    popd
-  '';
-
   postPatch = ''
-    patchShebangs src/
+    patchShebangs src/ utils/
 
     substituteInPlace src/Storages/System/StorageSystemLicenses.sh \
       --replace 'git rev-parse --show-toplevel' '$src'
@@ -154,19 +105,12 @@ in mkDerivation rec {
       --replace 'git rev-parse --show-toplevel' '$src'
     substituteInPlace utils/check-style/check-style \
       --replace 'git rev-parse --show-toplevel' '$src'
+    substituteInPlace contrib/openssl-cmake/CMakeLists.txt \
+      --replace '/usr/bin/env perl' '${perl}/bin/perl'
   '' + lib.optionalString stdenv.isDarwin ''
     sed -i 's|gfind|find|' cmake/tools.cmake
     sed -i 's|ggrep|grep|' cmake/tools.cmake
   '' + lib.optionalString rustSupport ''
-
-    pushd contrib/corrosion/generator
-    cargoDepsCopy="$corrosionDepsCopy" cargoSetupPostPatchHook
-    popd
-
-    pushd rust
-    cargoDepsCopy="$rustDepsCopy" cargoSetupPostPatchHook
-    popd
-
     cargoSetupPostPatchHook() { true; }
   '' + lib.optionalString stdenv.isDarwin ''
     # Make sure Darwin invokes lld.ld64 not lld.
