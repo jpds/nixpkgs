@@ -24721,10 +24721,16 @@ with pkgs;
 
   clamsmtp = callPackage ../servers/mail/clamsmtp { };
 
-  clickhouse = callPackage ../servers/clickhouse {
+  clickhouse = clickhouseLts;
+  
+  clickhouseLts = callPackage ../servers/clickhouse/lts.nix {
     llvmPackages = llvmPackages_17;
   };
 
+  clickhouseStable = callPackage ../servers/clickhouse/stable.nix {
+    llvmPackages = llvmPackages_17;
+  };
+  
   clickhouse-cli = with python3Packages; toPythonApplication clickhouse-cli;
 
   clickhouse-backup = callPackage ../development/tools/database/clickhouse-backup { };
