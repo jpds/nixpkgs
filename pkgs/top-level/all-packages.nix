@@ -12022,10 +12022,16 @@ with pkgs;
     autoreconfHook = buildPackages.autoreconfHook269;
   };
 
-  clickhouse = callPackage ../servers/clickhouse {
+  clickhouse = clickhouseLts;
+  
+  clickhouseLts = callPackage ../servers/clickhouse/lts.nix {
     llvmPackages = llvmPackages_17;
   };
 
+  clickhouseStable = callPackage ../servers/clickhouse/stable.nix {
+    llvmPackages = llvmPackages_17;
+  };
+  
   clickhouse-cli = with python3Packages; toPythonApplication clickhouse-cli;
 
   couchdb3 = callPackage ../servers/http/couchdb/3.nix { };
