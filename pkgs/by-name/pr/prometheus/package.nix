@@ -6,6 +6,7 @@
   fetchFromGitHub,
   fetchurl,
   nixosTests,
+  raceDetection ? false,
   enableAWS ? true,
   enableAzure ? true,
   enableConsul ? true,
@@ -113,7 +114,8 @@ buildGoModule (finalAttrs: {
       "-X ${t}.BuildUser=nix@nixpkgs"
       "-X ${t}.BuildDate=unknown"
       "-X ${t}.GoVersion=${lib.getVersion go}"
-    ];
+    ]
+    ++ lib.optionals raceDetection [ "-race" ];
 
   preInstall = ''
     mkdir -p "$out/share/doc/prometheus" "$out/etc/prometheus"
