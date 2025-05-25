@@ -1123,6 +1123,7 @@ in
   privoxy = handleTest ./privoxy.nix { };
   prometheus = import ./prometheus { inherit runTest; };
   prometheus-exporters = handleTest ./prometheus-exporters.nix { };
+  prometheus-hammer = import ./prometheus/prometheus-hammer.nix { inherit runTest; };
   prosody = handleTest ./xmpp/prosody.nix { };
   prosody-mysql = handleTest ./xmpp/prosody-mysql.nix { };
   proxy = handleTest ./proxy.nix { };
