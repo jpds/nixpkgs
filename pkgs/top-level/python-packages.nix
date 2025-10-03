@@ -9241,6 +9241,8 @@ self: super: with self; {
 
   meshcore = callPackage ../development/python-modules/meshcore { };
 
+  meshcore-cli = callPackage ../development/python-modules/meshcore-cli { };
+
   meshio = callPackage ../development/python-modules/meshio { };
 
   meshlabxml = callPackage ../development/python-modules/meshlabxml { };
