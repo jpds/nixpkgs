@@ -13,6 +13,7 @@
   zlib,
   nixosTests,
   nix-update-script,
+  versionCheckHook,
   ffmpegSupport ? true,
 }:
 
@@ -77,6 +78,11 @@ buildGo124Module rec {
     wrapProgram $out/bin/navidrome \
       --prefix PATH : ${lib.makeBinPath [ ffmpeg-headless ]}
   '';
+
+  nativeInstallCheckInputs = [
+    versionCheckHook
+  ];
+  doInstallCheck = true;
 
   passthru = {
     tests.navidrome = nixosTests.navidrome;
