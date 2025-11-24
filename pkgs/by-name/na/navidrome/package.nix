@@ -1,10 +1,10 @@
 {
-  buildGo124Module,
+  buildGo125Module,
   buildPackages,
   fetchFromGitHub,
   fetchNpmDeps,
   lib,
-  nodejs,
+  nodejs_24,
   npmHooks,
   pkg-config,
   stdenv,
@@ -17,30 +17,30 @@
   ffmpegSupport ? true,
 }:
 
-buildGo124Module (finalAttrs: {
+buildGo125Module (finalAttrs: {
   pname = "navidrome";
-  version = "0.58.0";
+  version = "0.58.5";
 
   src = fetchFromGitHub {
     owner = "navidrome";
     repo = "navidrome";
     rev = "v${finalAttrs.version}";
-    hash = "sha256-MwFACp2RKXz6zTzjknC5nKzaTEG1NWtvYggRZRiX5t0=";
+    hash = "sha256-bb6Ak8coEhN4ny79WgZ4DqzjqLbCr1FW/a3w2gfls2M=";
   };
 
-  vendorHash = "sha256-CrZqVhvDYemnaCuveOXySqHZhW+nrgzdxaiJRuZfSaI=";
+  vendorHash = "sha256-axtXNcduTCmi08kjmGCCgokvHR+uIdpZtnLCSFUIoM4=";
 
   npmRoot = "ui";
 
   npmDeps = fetchNpmDeps {
     inherit (finalAttrs) src;
     sourceRoot = "${finalAttrs.src.name}/ui";
-    hash = "sha256-tl6unHz0E0v0ObrfTiE0vZwVSyVFmrLggNM5QsUGsvI=";
+    hash = "sha256-X6H3laLaWsI0aqFKIE7IDdWqYuTScI7gcRbcB4wPsKA=";
   };
 
   nativeBuildInputs = [
     buildPackages.makeWrapper
-    nodejs
+    nodejs_24
     npmHooks.npmConfigHook
     pkg-config
   ];
