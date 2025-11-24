@@ -93,6 +93,7 @@ buildGo124Module (finalAttrs: {
     description = "Music Server and Streamer compatible with Subsonic/Airsonic";
     mainProgram = "navidrome";
     homepage = "https://www.navidrome.org/";
+    changelog = "https://github.com/navidrome/navidrome/releases/tag/v${finalAttrs.version}";
     license = lib.licenses.gpl3Only;
     sourceProvenance = with lib.sourceTypes; [ fromSource ];
     maintainers = with lib.maintainers; [
