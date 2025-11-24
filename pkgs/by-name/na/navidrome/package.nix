@@ -17,14 +17,14 @@
   ffmpegSupport ? true,
 }:
 
-buildGo124Module rec {
+buildGo124Module (finalAttrs: {
   pname = "navidrome";
   version = "0.58.0";
 
   src = fetchFromGitHub {
     owner = "navidrome";
     repo = "navidrome";
-    rev = "v${version}";
+    rev = "v${finalAttrs.version}";
     hash = "sha256-MwFACp2RKXz6zTzjknC5nKzaTEG1NWtvYggRZRiX5t0=";
   };
 
@@ -33,8 +33,8 @@ buildGo124Module rec {
   npmRoot = "ui";
 
   npmDeps = fetchNpmDeps {
-    inherit src;
-    sourceRoot = "${src.name}/ui";
+    inherit (finalAttrs) src;
+    sourceRoot = "${finalAttrs.src.name}/ui";
     hash = "sha256-tl6unHz0E0v0ObrfTiE0vZwVSyVFmrLggNM5QsUGsvI=";
   };
 
@@ -56,8 +56,8 @@ buildGo124Module rec {
   ];
 
   ldflags = [
-    "-X github.com/navidrome/navidrome/consts.gitSha=${src.rev}"
-    "-X github.com/navidrome/navidrome/consts.gitTag=v${version}"
+    "-X github.com/navidrome/navidrome/consts.gitSha=${finalAttrs.src.rev}"
+    "-X github.com/navidrome/navidrome/consts.gitTag=v${finalAttrs.version}"
   ];
 
   CGO_CFLAGS = lib.optionals stdenv.cc.isGNU [ "-Wno-return-local-addr" ];
@@ -103,4 +103,4 @@ buildGo124Module rec {
     # Broken on Darwin: sandbox-exec: pattern serialization length exceeds maximum (NixOS/nix#4119)
     broken = stdenv.hostPlatform.isDarwin;
   };
-}
+})
