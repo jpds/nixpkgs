@@ -42,6 +42,134 @@ in
         services.clickhouse.enable = true;
       };
 
+    hickory =
+      {
+        config,
+        nodes,
+        pkgs,
+        ...
+      }:
+      let
+        # Graciously taken from https://github.com/hickory-dns/hickory-dns/blob/main/tests/test-data/test_configs/example.com.zone
+        exampleZone = pkgs.writeTextDir "hickory-dns.org.zone" ''
+          ; replace the hickory-dns.org with your own name
+          $TTL 24h
+          @   IN          SOA     hickory-dns.org. root.hickory-dns.org. (
+                                          199609203 ; Serial
+                                          8h        ; Refresh
+                                          120m      ; Retry
+                                          7d        ; Expire
+                                          24h)      ; Negative response caching TTL
+
+                          NS      bbb
+
+                          MX      1 alias
+
+                          ANAME   www
+
+          www             A       127.0.0.1
+                          AAAA    ::1
+
+          bbb             A       127.0.0.2
+          this.has.dots   A       127.0.0.3
+
+          alias           CNAME   www
+          alias-chain     CNAME   alias
+
+          aname-chain     ANAME   alias
+
+          ; _Service._Proto.Name TTL Class SRV Priority Weight Port Target
+          server          SRV     1 1 443 alias
+
+          *.wildcard      CNAME   www
+
+          no-service 86400 IN MX 0 .
+
+          $TTL 900
+
+          shortlived      A       127.0.0.1
+                          AAAA    ::1
+        '';
+      in
+      {
+        networking.firewall.allowedUDPPorts = [ 53 ];
+
+        services.vector = {
+          enable = true;
+
+          settings = {
+            sources = {
+              dnstap = {
+                type = "dnstap";
+                multithreaded = true;
+                mode = "unix";
+                lowercase_hostnames = true;
+                socket_file_mode = 504;
+                socket_path = "${dnstapSocket}";
+              };
+            };
+
+            sinks = {
+              file = {
+                type = "file";
+                inputs = [ "dnstap" ];
+                path = "/var/lib/vector/logs.log";
+                encoding = {
+                  codec = "json";
+                };
+              };
+
+              vector_dnstap_sink = {
+                type = "vector";
+                inputs = [ "dnstap" ];
+                address = "clickhouse:6000";
+              };
+            };
+          };
+        };
+
+        systemd.services.vector.serviceConfig = {
+          RuntimeDirectory = "vector";
+          RuntimeDirectoryMode = "0770";
+        };
+
+        services.hickory-dns = {
+          enable = true;
+          settings = {
+            listen_addrs_ipv4 = [ "0.0.0.0" ];
+            listen_addrs_ipv6 = [ "::0" ];
+
+            dnstap = {
+              enabled = true;
+              unix_path = "${dnstapSocket}";
+              send_identity = true;
+              send_version = true;
+              log_auth_query = true;
+              log_auth_response = true;
+            };
+
+            zones = [
+              {
+                zone = "hickory-dns.org";
+                zone_type = "Primary";
+                file = "${exampleZone}/hickory-dns.org.zone";
+              }
+            ];
+          };
+        };
+
+        systemd.services.hickory-dns = {
+          after = [ "vector.service" ];
+          wants = [ "vector.service" ];
+          serviceConfig = {
+            # DNSTAP access
+            ReadWritePaths = [ "/var/run/vector" ];
+            SupplementaryGroups = [ "vector" ];
+            RestrictAddressFamilies = [ "AF_INET AF_INET6 AF_UNIX" ];
+          };
+        };
+      };
+
     knot =
       {
         config,
@@ -229,6 +357,13 @@ in
                   nodes.knot.networking.primaryIPAddress
                 ];
               }
+              {
+                name = "hickory-dns.org.";
+                forward-addr = [
+                  nodes.hickory.networking.primaryIPv6Address
+                  nodes.hickory.networking.primaryIPAddress
+                ];
+              }
             ];
 
             dnstap = {
@@ -356,10 +491,11 @@ in
         "cat ${tableView} | clickhouse-client",
       )
 
+      hickory.wait_for_unit("hickory-dns")
       knot.wait_for_unit("knot")
       unbound.wait_for_unit("unbound")
 
-      for machine in knot, unbound:
+      for machine in hickory, knot, unbound:
         machine.wait_for_unit("vector")
 
         machine.wait_until_succeeds(
@@ -375,7 +511,8 @@ in
       dnsclient.wait_for_unit("network-online.target")
       dnsclient.succeed(
         "dig @unbound test.local",
-        "dig @unbound www.example.com"
+        "dig @unbound www.example.com",
+        "dig @unbound www.hickory-dns.org"
       )
 
       unbound.wait_for_file("/var/lib/vector/logs.log")
@@ -392,7 +529,15 @@ in
       ))
 
       clickhouse.log(clickhouse.wait_until_succeeds(
+        "cat ${selectDomainCountQuery} | clickhouse-client | grep 'www.hickory-dns.org.'"
+      ))
+
+      clickhouse.log(clickhouse.wait_until_succeeds(
         "cat ${selectDomainCountQuery} | clickhouse-client | grep 'www.example.com.'"
+      ))
+
+      clickhouse.log(clickhouse.wait_until_succeeds(
+        "cat ${selectAuthResponseQuery} | clickhouse-client | grep -i 'hickory-dns ${pkgs.hickory-dns.version}'"
       ))
 
       clickhouse.log(clickhouse.wait_until_succeeds(
