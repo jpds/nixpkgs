@@ -3,7 +3,7 @@
   buildPythonPackage,
   fetchPypi,
   hatchling,
-  griffe,
+  griffelib,
   mcp,
   openai,
   pydantic,
@@ -14,13 +14,13 @@
 
 buildPythonPackage rec {
   pname = "openai-agents";
-  version = "0.6.9";
+  version = "0.17.5";
   pyproject = true;
 
   src = fetchPypi {
     inherit version;
     pname = "openai_agents";
-    hash = "sha256-5VYjgntKGxHWbsAIS9K56ixtYPIz4EVHgDr0M5Z+L9s=";
+    hash = "sha256-XdRpQ7mT4aaKeKzSVPxqAM8EVfw9zIAgeOomlksUJ4w=";
   };
 
   build-system = [
@@ -28,7 +28,7 @@ buildPythonPackage rec {
   ];
 
   dependencies = [
-    griffe
+    griffelib
     mcp
     openai
     pydantic
