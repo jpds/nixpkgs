@@ -12,13 +12,13 @@
   typing-extensions,
 }:
 
-buildPythonPackage rec {
+buildPythonPackage (finalAttrs: {
   pname = "openai-agents";
   version = "0.17.5";
   pyproject = true;
 
   src = fetchPypi {
-    inherit version;
+    inherit (finalAttrs) version;
     pname = "openai_agents";
     hash = "sha256-XdRpQ7mT4aaKeKzSVPxqAM8EVfw9zIAgeOomlksUJ4w=";
   };
@@ -42,10 +42,10 @@ buildPythonPackage rec {
   ];
 
   meta = {
-    changelog = "https://github.com/openai/openai-agents-python/releases/tag/${version}";
+    changelog = "https://github.com/openai/openai-agents-python/releases/tag/${finalAttrs.src.tag}";
     homepage = "https://github.com/openai/openai-agents-python";
     description = "Lightweight, powerful framework for multi-agent workflows";
     license = lib.licenses.mit;
     maintainers = [ lib.maintainers.bryanhonof ];
   };
-}
+})
